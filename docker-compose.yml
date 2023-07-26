@@ -1,0 +1,108 @@
+version: "3.9"
+
+networks:
+  default:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.151.3.0/24
+          gateway: 10.151.3.1
+
+services:
+  interlocking_bridge:
+    container_name: interlocking_bridge
+    image: reg.osmhpi.de/iotlab/rasta-bridge-railway-ccs:main-cb60aa8b3c039498664f07f58b018f1904ee9350
+    command: ["host.docker.internal:50051"]
+    networks:
+      default:
+        ipv4_address: 10.151.3.10
+    environment:
+      - AKRI_RASTA_CRC_CODE=NO_CHECKSUM
+      - AKRI_RASTA_HOST=10.151.3.20
+      - AKRI_RASTA_LOCAL_PORT_CHANNEL0=1998
+      - AKRI_RASTA_LOCAL_PORT_CHANNEL1=1999
+      - AKRI_RASTA_MD4=HALF_SAFETYCODE
+      - AKRI_RASTA_MD4_START00=0x67452301
+      - AKRI_RASTA_MD4_START01=0xEFCDAB89
+      - AKRI_RASTA_MD4_START02=0x98BADCFE
+      - AKRI_RASTA_MD4_START03=0x10325476
+      - AKRI_RASTA_MWA=10
+      - AKRI_RASTA_N_DEFER_QUEUE_SIZE=4
+      - AKRI_RASTA_N_DIAGNOSIS=100
+      - AKRI_RASTA_N_DIAG_WINDOW=5000
+      - AKRI_RASTA_N_MAX_PACKET=3
+      - AKRI_RASTA_N_SENDMAX=20
+      - AKRI_RASTA_RASTA_LOCAL_ID=98
+      - AKRI_RASTA_RASTA_NETWORK=1234
+      - AKRI_RASTA_RASTA_REMOTE_ID=97
+      - AKRI_RASTA_RASTA_VERSION=0303
+      - AKRI_RASTA_RECEIVER_ID=99N1
+      - AKRI_RASTA_REMOTE_PORT_CHANNEL0=1888
+      - AKRI_RASTA_REMOTE_PORT_CHANNEL1=1889
+      - AKRI_RASTA_SENDER_ID=INTERLOCKING
+      - AKRI_RASTA_TH=2000
+      - AKRI_RASTA_TMAX=10000
+      - AKRI_RASTA_TRANSPORT_CNT=1
+      - AKRI_RASTA_T_SEQ=50
+
+  signal_bridge:
+    container_name: signal_bridge
+    depends_on:
+      - signal
+    network_mode: service:signal
+    image: reg.osmhpi.de/iotlab/rasta-bridge-uni-passau:rasta-bridge-e4197248867d24aaa287d9311e3ec45b365cc5a6
+    entrypoint: ["sh", "-c", "while true; do ./entrypoint ; done"]
+    environment:
+        - AKRI_RASTA_CRC_CODE=NO_CHECKSUM
+        - AKRI_RASTA_HOST=10.151.3.10
+        - AKRI_RASTA_LOCAL_PORT_CHANNEL0=1888
+        - AKRI_RASTA_LOCAL_PORT_CHANNEL1=1889
+        - AKRI_RASTA_MD4=HALF_SAFETYCODE
+        - AKRI_RASTA_MD4_START00=0x67452301
+        - AKRI_RASTA_MD4_START01=0xEFCDAB89
+        - AKRI_RASTA_MD4_START02=0x98BADCFE
+        - AKRI_RASTA_MD4_START03=0x10325476
+        - AKRI_RASTA_MWA=10
+        - AKRI_RASTA_N_DEFER_QUEUE_SIZE=4
+        - AKRI_RASTA_N_DIAGNOSIS=100
+        - AKRI_RASTA_N_DIAG_WINDOW=5000
+        - AKRI_RASTA_N_MAX_PACKET=3
+        - AKRI_RASTA_N_SENDMAX=20
+        - AKRI_RASTA_RASTA_LOCAL_ID=97
+        - AKRI_RASTA_RASTA_NETWORK=1234
+        - AKRI_RASTA_RASTA_REMOTE_ID=98
+        - AKRI_RASTA_RASTA_VERSION=0303
+        - AKRI_RASTA_RECEIVER_ID=INTERLOCKING
+        - AKRI_RASTA_REMOTE_PORT_CHANNEL0=1998
+        - AKRI_RASTA_REMOTE_PORT_CHANNEL1=1999
+        - AKRI_RASTA_SENDER_ID=99N1
+        - AKRI_RASTA_TH=2000
+        - AKRI_RASTA_TMAX=10000
+        - AKRI_RASTA_TRANSPORT_CNT=1
+        - AKRI_RASTA_T_SEQ=50
+  
+  signal:
+      container_name: signal
+      networks:
+        default:
+          ipv4_address: 10.151.3.20
+      image: ghcr.io/eulynx-live/subsystems/light-signal:main
+      ports:
+        - 5201:5101
+      environment:
+        - LightSignals__0__id=99N1
+        - LightSignals__0__type=multiSection
+        - LightSignals__1__id=99N2
+        - LightSignals__1__type=multiSection
+        - LightSignals__2__id=99N3
+        - LightSignals__2__type=multiSection
+      entrypoint:
+        - "dotnet"
+        - "LightSignal.dll"
+      command:
+        - --local-rasta-id
+        - "97"
+        - --remote-id
+        - INTERLOCKING
+        - --remote-endpoint
+        - http://localhost:50051
