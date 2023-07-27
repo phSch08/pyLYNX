@@ -10,9 +10,9 @@ networks:
 
 services:
   interlocking_bridge:
-    container_name: interlocking_bridge
+    container_name: pylynx_bridge
     image: reg.osmhpi.de/iotlab/rasta-bridge-railway-ccs:main-cb60aa8b3c039498664f07f58b018f1904ee9350
-    command: ["host.docker.internal:50051"]
+    command: ["10.151.3.1:50051"]
     networks:
       default:
         ipv4_address: 10.151.3.10
@@ -46,7 +46,7 @@ services:
       - AKRI_RASTA_T_SEQ=50
 
   signal_bridge:
-    container_name: signal_bridge
+    container_name: pylynx_signal_bridge
     depends_on:
       - signal
     network_mode: service:signal
@@ -82,7 +82,7 @@ services:
         - AKRI_RASTA_T_SEQ=50
   
   signal:
-      container_name: signal
+      container_name: pylynx_signal
       networks:
         default:
           ipv4_address: 10.151.3.20

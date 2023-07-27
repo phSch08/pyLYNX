@@ -15,6 +15,7 @@ class _RastaElement(RastaServicer):
              self.message_queue = message_queue
         
         def Stream(self, request_iterator, context):
+            logging.warning("Running Stream")
             while True:
                 if stop_servicer:
                      break
@@ -35,7 +36,7 @@ class pyLYNX:
         self.listen_addr = listen_addr
 
     def __enter__(self):
-        self.thread = threading.Thread(target=self.do_magic).start()
+        self.thread = threading.Thread(target=self.prepare_server).start()
         return self
          
     def __exit__(self, type, value, traceback):
@@ -44,8 +45,9 @@ class pyLYNX:
         stop_servicer = True
         self.server.wait_for_termination()
 
-    def do_magic(self):
-         asyncio.run(self.start_server())
+    def prepare_server(self):
+        logging.warning("Starting Server...2")
+        asyncio.run(self.start_server())
          
     async def start_server(self):
         self.server = grpc.aio.server()
