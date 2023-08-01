@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "pylynx"
+version = "1.0"
+description = "A basic EULYNX implementation for Python"
+authors = ["Philipp Schmidt <philipp.schmidt@student.hpi.de>"]
+readme = "README.md"
+license = "GPL-3.0-or-later"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+grpcio = "^1.43"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

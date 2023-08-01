@@ -1,7 +1,6 @@
 import asyncio
 import queue
 import grpc
-import sys
 import logging
 import threading
 
