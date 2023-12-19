@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pyLYNX"
+name = "pyLYNX.pyLYNX"
 version = "1.0"
 description = "A basic EULYNX implementation for Python"
 authors = ["Philipp Schmidt <philipp.schmidt@student.hpi.de>"]
