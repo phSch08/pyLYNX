@@ -1,13 +1,15 @@
 import asyncio
-import queue
 import grpc
 import logging
-import threading
+import multiprocessing
+import time
+import signal
 
 from .proto.rasta_pb2 import SciPacket
 from .proto.rasta_pb2_grpc import RastaServicer, add_RastaServicer_to_server
 
 stop_servicer = False
+   
 
 class _RastaElement(RastaServicer):
         def __init__(self, message_queue):
@@ -15,15 +17,12 @@ class _RastaElement(RastaServicer):
         
         def Stream(self, request_iterator, context):
             logging.warning("Running Stream")
-            while True:
-                if stop_servicer:
-                     break
-                
+            while True:                
                 try:
-                    logging.warning("Waiting for Message...")
-                    message = self.message_queue.get(True, 10)
+                    logging.debug("Waiting for Message...")
+                    message = self.message_queue.get(True, 60)
                     yield SciPacket(message=message)
-                    logging.warning("Sent Message...")
+                    logging.info("Sent Message...")
                     self.message_queue.task_done()
                 except:
                     continue
@@ -31,21 +30,30 @@ class _RastaElement(RastaServicer):
 
 class pyLYNX:
     def __init__(self, listen_addr: str):
-        self.message_queue: queue.Queue = queue.Queue()
+        self.message_queue: multiprocessing.JoinableQueue = multiprocessing.JoinableQueue()
         self.listen_addr = listen_addr
 
     def __enter__(self):
-        self.thread = threading.Thread(target=self.prepare_server).start()
+        self.subprocess = multiprocessing.Process(target=self.prepare_server)
+        self.subprocess.start()
         return self
          
     def __exit__(self, type, value, traceback):
-        logging.warning("Exiting...")
-        global stop_servicer
-        stop_servicer = True
-        self.server.wait_for_termination()
+        logging.info("Waiting for Message Queue to get empty")
+        self.message_queue.join()
+        logging.info("Message Queue is empty, killing Background Service")
+        self.subprocess.kill()
+
+    def open(self):
+        self.__enter__()
+    
+    def close(self):
+        self.__exit__()
 
     def prepare_server(self):
-        logging.warning("Starting Server...2")
+        logging.info("Preparing Server...")
+        time.sleep(2)
+        logging.warning(self.message_queue.empty())
         asyncio.run(self.start_server())
          
     async def start_server(self):
@@ -53,7 +61,7 @@ class pyLYNX:
         rasta_element = _RastaElement(self.message_queue)
         add_RastaServicer_to_server(rasta_element, self.server)
         self.server.add_insecure_port(self.listen_addr)
-        logging.warning("Starting Server...")
+        logging.info("Starting Server...")
         await self.server.start()
         await self.server.wait_for_termination()
 
