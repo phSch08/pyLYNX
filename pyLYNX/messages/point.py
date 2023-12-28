@@ -1,4 +1,5 @@
-from ._generic import EulynxGeneric
+from ._generic import EulynxGeneric, EulynxGenericParser
+from typing import Callable
 
 class PointPosition:
     right = bytes.fromhex('01')
@@ -31,3 +32,35 @@ class EulynxPoint(EulynxGeneric):
 
         message += point_position        
         return message
+
+class EulynxPointParser(EulynxGenericParser):
+    def __init__(self):
+        self.move_point_callbacks = []
+
+    def parse_message(self, message: bytes) -> bool:
+        '''
+        parse a EULYNX message and call the registered callback functions if the message matches the supported types.
+
+        @param message EULYNX message as byte array
+
+        @returns True if the message could be parsed successfully, otherwise False
+        '''
+        if (message[:3] == EulynxPoint.protocol_type + bytes.fromhex('0100')):
+            for func in self.indicate_signal_aspect_callbacks:
+                sender = message[3:23].decode('iso8859-1').rstrip("_")
+                receiver = message[23:43].decode('iso8859-1').rstrip("_")
+                func[0](sender, receiver, message[43], func[1])
+            return True
+        
+        return False
+    
+    def register_move_point_callback(self, function: Callable[[str, str, bytes, tuple], None], params: tuple) -> None:
+        '''
+        Register a callback function for the "indicate signal aspect" EULYNX Message.
+
+        @param function Callable that accepts three parameters: sender id, receiver id, point target position, params
+        @param params tuple of parameters passed to the callable
+
+        @returns None
+        '''
+        self.indicate_signal_aspect_callbacks.append((function, tuple))

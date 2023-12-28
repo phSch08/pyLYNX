@@ -1,4 +1,5 @@
-from ._generic import EulynxGeneric
+from ._generic import EulynxGeneric, EulynxGenericParser
+from typing import Callable
 
 class EulynxSignalAspect:
     stop_danger = bytes.fromhex('01')
@@ -78,3 +79,54 @@ class EulynxSignal(EulynxGeneric):
         message += luminosity
         
         return message
+
+class EulynxSignalParser(EulynxGenericParser):
+    def __init__(self):
+        self.indicate_signal_aspect_callbacks = []
+        self.set_luminosity_callbacks = []
+
+    def parse_message(self, message: bytes) -> bool:
+        '''
+        parse a EULYNX message and call the registered callback functions if the message matches the supported types.
+
+        @param message EULYNX message as byte array
+
+        @returns True if the message could be parsed successfully, otherwise False
+        '''
+        if (message[:3] == EulynxSignal.protocol_type + bytes.fromhex('0100')):
+            for func in self.indicate_signal_aspect_callbacks:
+                sender = message[3:23].decode('iso8859-1').rstrip("_")
+                receiver = message[23:43].decode('iso8859-1').rstrip("_")
+                func[0](sender, receiver, bytes([message[43]]), func[1])
+            return True
+
+        elif (message[:3] == EulynxSignal.protocol_type + bytes.fromhex('0002')):
+            for func in self.indicate_signal_aspect_callbacks:
+                sender = message[3:23].decode('iso8859-1').rstrip("_")
+                receiver = message[23:43].decode('iso8859-1').rstrip("_")
+                func[0](sender, receiver, message[43], func[1])
+            return True
+
+        return False
+    
+    def register_indicate_signal_aspect_callback(self, function: Callable[[str, str, bytes, tuple], None], params: tuple) -> None:
+        '''
+        Register a callback function for the "indicate signal aspect" EULYNX Message.
+
+        @param function callable that accepts four parameters: sender id, receiver id, basic signal aspect and tuple of parameters
+        @param params tuple of parameters passed to the callable
+
+        @returns None
+        '''
+        self.indicate_signal_aspect_callbacks.append((function, params))
+
+    def register_set_luminosity_callback(self, function: Callable[[str, str, bytes, tuple], None], params: tuple) -> None:
+        '''
+        Register a callback function for the "set luminosity" EULYNX Message.
+
+        @param function Callable that accepts three parameters: sender id, receiver id, luminosity value and tuple of paramters
+        @param params tuple of parameters passed to the callable
+
+        @returns None
+        '''
+        self.set_luminosity_callbacks.append((function, params)) 

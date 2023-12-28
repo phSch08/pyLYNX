@@ -1,3 +1,5 @@
+import abc
+
 class EulynxGeneric:
     protocol_type = bytes.fromhex('00')
 
@@ -32,3 +34,17 @@ class EulynxGeneric:
         message += receiver + ((20 - len(receiver)) * bytes.fromhex('5f'))
 
         return message
+
+class EulynxGenericParser:
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractclassmethod
+    def parse_message(self, message: bytes) -> bool:
+        '''
+        parse a EULYNX message
+
+        @param message EULYNX message as byte array
+
+        @returns True if the message could be parsed successfully, otherwise False
+        '''
+        return False
