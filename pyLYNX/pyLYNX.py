@@ -127,7 +127,7 @@ class pyLYNX:
             found_parser = False
             request = self.response_queue.get_nowait()
             for parser in self.parsers:
-                found_parsers = found_parser or parser.parse_message(request)
+                found_parser = found_parser or parser.parse_message(request)
 
             if not found_parser and self.default_parser:
                 self.default_parser.parse_message(request)
