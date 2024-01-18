@@ -357,3 +357,192 @@ class EulynxTrainDetection(EulynxGeneric):
         message += passing_direction
 
         return message
+
+
+class EulynxTrainDetectionParser(EulynxGenericParser):
+    def __init__(self):
+        self.fc_callbacks = []
+        self.update_filling_level_callbacks = []
+        self.cancel_callbacks = []
+        self.drfc_callbacks = []
+        self.occupancy_status_callbacks = []
+        self.command_rejected_callbacks = []
+        self.fcp_failed_callbacks = []
+        self.fcpa_failed_callbacks = []
+        self.additional_information_callbacks = []
+        self.tdp_status_callbacks = []
+
+    def parse_message(self, message: bytes) -> bool:
+        '''
+        parse a EULYNX message and call the registered callback functions if the message matches the supported types.
+
+        :param message: EULYNX message as byte array
+
+        returns True if the message could be parsed successfully, otherwise False
+        '''
+        if (len(message) > 42 and message[0].to_bytes(1,'big') == EulynxTrainDetection.protocol_type):
+            sender = message[3:23].decode('iso8859-1').rstrip("_")
+            receiver = message[23:43].decode('iso8859-1').rstrip("_")
+
+            if (message[1:3] == bytes.fromhex('0001')):
+                for func in self.fc_callbacks:
+                    func[0](sender, receiver, message[43], func[1])
+                return True
+            elif (message[1:3] == bytes.fromhex('0002')):
+                for func in self.update_filling_level_callbacks:
+                    func[0](sender, receiver, func[1])
+                return True
+            elif (message[1:3] == bytes.fromhex('0008')):
+                for func in self.cancel_callbacks:
+                    func[0](sender, receiver, func[1])
+                return True
+            elif (message[1:3] == bytes.fromhex('0003')):
+                for func in self.drfc_callbacks:
+                    func[0](sender, receiver, func[1])
+                return True
+            elif (message[1:3] == bytes.fromhex('0007')):
+                for func in self.occupancy_status_callbacks:
+                    func[0](
+                        sender,
+                        receiver,
+                        message[43],
+                        message[44],
+                        int.from_bytes(message[45:47], 'big'),
+                        message[47],
+                        message[48],
+                        message[49],
+                        func[1]
+                    )
+                return True
+            elif (message[1:3] == bytes.fromhex('0006')):
+                for func in self.command_rejected_callbacks:
+                    func[0](sender, receiver, message[43], func[1])
+                return True
+            elif (message[1:3] == bytes.fromhex('0010')):
+                for func in self.fcp_failed_callbacks:
+                    func[0](sender, receiver, message[43], func[1])
+                return True
+            elif (message[1:3] == bytes.fromhex('0011')):
+                for func in self.fcpa_failed_callbacks:
+                    func[0](sender, receiver, message[43], func[1])
+                return True
+            elif (message[1:3] == bytes.fromhex('0012')):
+                for func in self.additional_information_callbacks:
+                    func[0](sender, receiver, message[43:45], message[45:], func[1])
+                return True
+            elif (message[1:3] == bytes.fromhex('000B')):
+                for func in self.fcp_failed_callbacks:
+                    func[0](sender, receiver, message[43], message[44], func[1])
+                return True
+
+        return False
+
+    def register_fc_callback(self, function: Callable[[str, str, bytes, tuple], None], params: tuple) -> None:
+        '''
+        Register a callback function for the "FC" EULYNX Command.
+
+        :param function: Callable that accepts four parameters: sender id, receiver id, fc mode, params
+        :param params: tuple of parameters passed to the callable
+
+        returns None
+        '''
+        self.fc_callbacks.append((function, tuple))
+
+    def register_update_filling_level_callback(self, function: Callable[[str, str, tuple], None], params: tuple) -> None:
+        '''
+        Register a callback function for the "Update Filling Level" EULYNX Command.
+
+        :param function: Callable that accepts three parameters: sender id, receiver id, params
+        :param params: tuple of parameters passed to the callable
+
+        returns None
+        '''
+        self.update_filling_level_callbacks.append((function, tuple))
+
+    def register_cancel_callback(self, function: Callable[[str, str, tuple], None], params: tuple) -> None:
+        '''
+        Register a callback function for the "Cancel" EULYNX Command.
+
+        :param function: Callable that accepts three parameters: sender id, receiver id, params
+        :param params: tuple of parameters passed to the callable
+
+        returns None
+        '''
+        self.cancel_callbacks.append((function, tuple))
+
+    def register_drfc_callback(self, function: Callable[[str, str, tuple], None], params: tuple) -> None:
+        '''
+        Register a callback function for the "DRFC" EULYNX Command.
+
+        :param function: Callable that accepts three parameters: sender id, receiver id, params
+        :param params: tuple of parameters passed to the callable
+
+        returns None
+        '''
+        self.drfc_callbacks.append((function, tuple))
+
+    def register_occupancy_status_callback(self, function: Callable[[str, str, bytes, bytes, int, bytes, bytes, bytes, tuple], None], params: tuple) -> None:
+        '''
+        Register a callback function for the "TVPS Occupancy Status" EULYNX Message.
+
+        :param function: Callable that accepts three parameters: sender id, receiver id, occupancy status, force clear ability, filling level, POM Status, Disturbance Status, Change Trigger
+        :param params: tuple of parameters passed to the callable
+
+        returns None
+        '''
+        self.occupancy_status_callbacks.append((function, tuple))
+
+    def regsiter_command_rejected_callback(self, function: Callable[[str, str, bytes, tuple], None], params: tuple) -> None:
+        '''
+        Register a callback function for the "Command Rejected" EULYNX Message.
+
+        :param function: Callable that accepts three parameters: sender id, receiver id, rejection reason, params
+        :param params: tuple of parameters passed to the callable
+
+        returns None
+        '''
+        self.command_rejected_callbacks.append((function, tuple))
+
+    def register_fcp_failed_callback(self, function: Callable[[str, str, bytes, tuple], None], params: tuple) -> None:
+        '''
+        Register a callback function for the "TVPS FC-P failed" EULYNX Message.
+
+        :param function: Callable that accepts three parameters: sender id, receiver id, failure reason, params
+        :param params: tuple of parameters passed to the callable
+
+        returns None
+        '''
+        self.fcp_failed_callbacks.append((function, tuple))
+
+    def register_fcpa_failed_callback(self, function: Callable[[str, str, bytes, tuple], None], params: tuple) -> None:
+        '''
+        Register a callback function for the "TVPS FC-P-A failed" EULYNX Message.
+
+        :param function: Callable that accepts three parameters: sender id, receiver id, failure reason, params
+        :param params: tuple of parameters passed to the callable
+
+        returns None
+        '''
+        self.fcpa_failed_callbacks.append((function, tuple))
+
+    def regsiter_additional_information_callback(self, function: Callable[[str, str, bytes, bytes, tuple], None], params: tuple) -> None:
+        '''
+        Register a callback function for the "Additional Information" EULYNX Message.
+
+        :param function: Callable that accepts three parameters: sender id, receiver id, speed, wheel diameter, params
+        :param params: tuple of parameters passed to the callable
+
+        returns None
+        '''
+        self.additional_information_callbacks.append((function, tuple))
+
+    def register_tdp_status_callback(self, function: Callable[[str, str, bytes, bytes, tuple], None], params: tuple) -> None:
+        '''
+        Register a callback function for the "TDP Status" EULYNX Message.
+
+        :param function: Callable that accepts three parameters: sender id, receiver id, passing state, passing direction, params
+        :param params: tuple of parameters passed to the callable
+
+        returns None
+        '''
+        self.tdp_status_callbacks.append((function, tuple))
