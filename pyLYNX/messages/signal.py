@@ -1,6 +1,7 @@
 from ._generic import EulynxGeneric, EulynxGenericParser
 from typing import Callable
 
+
 class EulynxSignalAspect:
     stop_danger = bytes.fromhex('01')
     proceed_clear = bytes.fromhex('04')
@@ -12,24 +13,26 @@ class EulynxSignalAspect:
     shunting_allowed2 = bytes.fromhex('09')
     ignore_signal = bytes.fromhex('0A')
 
+
 class EulynxSignalLuminosity:
     day = bytes.fromhex('01')
     night = bytes.fromhex('02')
     deleted = bytes.fromhex('FE')
 
+
 class EulynxSignal(EulynxGeneric):
     protocol_type = bytes.fromhex('30')
 
     @classmethod
-    def indicate_signal_aspect(cls, sender_id : str, receiver_id : str, signal_aspect : bytes) -> bytes:
+    def indicate_signal_aspect(cls, sender_id: str, receiver_id: str, signal_aspect: bytes) -> bytes:
         '''
         generate command to indicate a signal aspect
 
-        @param sender_id Identifier of the sending instance of the command
-        @param receiver_id Identifier of the receiving instance of the command
+        :param sender_id: Identifier of the sending instance of the command
+        :param receiver_id: Identifier of the receiving instance of the command
 
-        @returns bytes 
-        ''' 
+        returns bytes 
+        '''
         message = cls.protocol_type       # Protocol Type
         message += bytes.fromhex('0100')    # Message Type
 
@@ -44,27 +47,34 @@ class EulynxSignal(EulynxGeneric):
         message += signal_aspect
 
         message += bytes.fromhex('02')      # extension of basic aspect type
-        message += bytes.fromhex('FF')      # speed indicator (FF = intendet dark)
-        message += bytes.fromhex('FF')      # speed indicator announcements (FF = intendet dark)
-        message += bytes.fromhex('FF')      # direction indicator (FF = intendet dark)
-        message += bytes.fromhex('FF')      # direction indicator announcements (FF = intendet dark)
-        message += bytes.fromhex('FF')      # downgrade information (FF = not applicable)
-        message += bytes.fromhex('FF')      # route information (FF = not applicable)
-        message += bytes.fromhex('FF')      # intentionally dark (FF = not applicable)
+        # speed indicator (FF = intendet dark)
+        message += bytes.fromhex('FF')
+        # speed indicator announcements (FF = intendet dark)
+        message += bytes.fromhex('FF')
+        # direction indicator (FF = intendet dark)
+        message += bytes.fromhex('FF')
+        # direction indicator announcements (FF = intendet dark)
+        message += bytes.fromhex('FF')
+        # downgrade information (FF = not applicable)
+        message += bytes.fromhex('FF')
+        # route information (FF = not applicable)
+        message += bytes.fromhex('FF')
+        # intentionally dark (FF = not applicable)
+        message += bytes.fromhex('FF')
         message += 9 * bytes.fromhex('00')  # national specified
-        
+
         return message
 
     @classmethod
-    def set_luminosity(cls, sender_id : str, receiver_id : str, luminosity : bytes) -> bytes:
+    def set_luminosity(cls, sender_id: str, receiver_id: str, luminosity: bytes) -> bytes:
         '''
         generate command to indicate a signal aspect
 
-        @param sender_id Identifier of the sending instance of the command
-        @param receiver_id Identifier of the receiving instance of the command
+        :param sender_id: Identifier of the sending instance of the command
+        :param receiver_id: Identifier of the receiving instance of the command
 
-        @returns bytes 
-        ''' 
+        returns bytes 
+        '''
         message = cls.protocol_type        # Protocol Type
         message += bytes.fromhex('0002')    # Message Type
 
@@ -77,8 +87,9 @@ class EulynxSignal(EulynxGeneric):
         message += receiver + ((20 - len(receiver)) * bytes.fromhex('5f'))
 
         message += luminosity
-        
+
         return message
+
 
 class EulynxSignalParser(EulynxGenericParser):
     def __init__(self):
@@ -89,9 +100,9 @@ class EulynxSignalParser(EulynxGenericParser):
         '''
         parse a EULYNX message and call the registered callback functions if the message matches the supported types.
 
-        @param message EULYNX message as byte array
+        :param message: EULYNX message as byte array
 
-        @returns True if the message could be parsed successfully, otherwise False
+        returns True if the message could be parsed successfully, otherwise False
         '''
         if (message[:3] == EulynxSignal.protocol_type + bytes.fromhex('0100')):
             for func in self.indicate_signal_aspect_callbacks:
@@ -108,15 +119,15 @@ class EulynxSignalParser(EulynxGenericParser):
             return True
 
         return False
-    
+
     def register_indicate_signal_aspect_callback(self, function: Callable[[str, str, bytes, tuple], None], params: tuple) -> None:
         '''
         Register a callback function for the "indicate signal aspect" EULYNX Message.
 
-        @param function callable that accepts four parameters: sender id, receiver id, basic signal aspect and tuple of parameters
-        @param params tuple of parameters passed to the callable
+        :param function: callable that accepts four parameters: sender id, receiver id, basic signal aspect and tuple of parameters
+        :param params: tuple of parameters passed to the callable
 
-        @returns None
+        returns None
         '''
         self.indicate_signal_aspect_callbacks.append((function, params))
 
@@ -124,9 +135,9 @@ class EulynxSignalParser(EulynxGenericParser):
         '''
         Register a callback function for the "set luminosity" EULYNX Message.
 
-        @param function Callable that accepts three parameters: sender id, receiver id, luminosity value and tuple of paramters
-        @param params tuple of parameters passed to the callable
+        :param function: Callable that accepts three parameters: sender id, receiver id, luminosity value and tuple of paramters
+        :param params: tuple of parameters passed to the callable
 
-        @returns None
+        returns None
         '''
-        self.set_luminosity_callbacks.append((function, params)) 
+        self.set_luminosity_callbacks.append((function, params))
