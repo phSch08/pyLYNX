@@ -446,7 +446,7 @@ class EulynxTrainDetectionParser(EulynxGenericParser):
 
         returns None
         '''
-        self.fc_callbacks.append((function, tuple))
+        self.fc_callbacks.append((function, params))
 
     def register_update_filling_level_callback(self, function: Callable[[str, str, tuple], None], params: tuple) -> None:
         '''
@@ -457,7 +457,7 @@ class EulynxTrainDetectionParser(EulynxGenericParser):
 
         returns None
         '''
-        self.update_filling_level_callbacks.append((function, tuple))
+        self.update_filling_level_callbacks.append((function, params))
 
     def register_cancel_callback(self, function: Callable[[str, str, tuple], None], params: tuple) -> None:
         '''
@@ -468,7 +468,7 @@ class EulynxTrainDetectionParser(EulynxGenericParser):
 
         returns None
         '''
-        self.cancel_callbacks.append((function, tuple))
+        self.cancel_callbacks.append((function, params))
 
     def register_drfc_callback(self, function: Callable[[str, str, tuple], None], params: tuple) -> None:
         '''
@@ -479,7 +479,7 @@ class EulynxTrainDetectionParser(EulynxGenericParser):
 
         returns None
         '''
-        self.drfc_callbacks.append((function, tuple))
+        self.drfc_callbacks.append((function, params))
 
     def register_occupancy_status_callback(self, function: Callable[[str, str, bytes, bytes, int, bytes, bytes, bytes, tuple], None], params: tuple) -> None:
         '''
@@ -490,7 +490,7 @@ class EulynxTrainDetectionParser(EulynxGenericParser):
 
         returns None
         '''
-        self.occupancy_status_callbacks.append((function, tuple))
+        self.occupancy_status_callbacks.append((function, params))
 
     def regsiter_command_rejected_callback(self, function: Callable[[str, str, bytes, tuple], None], params: tuple) -> None:
         '''
@@ -501,7 +501,7 @@ class EulynxTrainDetectionParser(EulynxGenericParser):
 
         returns None
         '''
-        self.command_rejected_callbacks.append((function, tuple))
+        self.command_rejected_callbacks.append((function, params))
 
     def register_fcp_failed_callback(self, function: Callable[[str, str, bytes, tuple], None], params: tuple) -> None:
         '''
@@ -512,7 +512,7 @@ class EulynxTrainDetectionParser(EulynxGenericParser):
 
         returns None
         '''
-        self.fcp_failed_callbacks.append((function, tuple))
+        self.fcp_failed_callbacks.append((function, params))
 
     def register_fcpa_failed_callback(self, function: Callable[[str, str, bytes, tuple], None], params: tuple) -> None:
         '''
@@ -523,7 +523,7 @@ class EulynxTrainDetectionParser(EulynxGenericParser):
 
         returns None
         '''
-        self.fcpa_failed_callbacks.append((function, tuple))
+        self.fcpa_failed_callbacks.append((function, params))
 
     def regsiter_additional_information_callback(self, function: Callable[[str, str, bytes, bytes, tuple], None], params: tuple) -> None:
         '''
@@ -534,7 +534,7 @@ class EulynxTrainDetectionParser(EulynxGenericParser):
 
         returns None
         '''
-        self.additional_information_callbacks.append((function, tuple))
+        self.additional_information_callbacks.append((function, params))
 
     def register_tdp_status_callback(self, function: Callable[[str, str, bytes, bytes, tuple], None], params: tuple) -> None:
         '''
@@ -545,4 +545,4 @@ class EulynxTrainDetectionParser(EulynxGenericParser):
 
         returns None
         '''
-        self.tdp_status_callbacks.append((function, tuple))
+        self.tdp_status_callbacks.append((function, params))

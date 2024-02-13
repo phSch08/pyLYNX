@@ -66,4 +66,4 @@ class EulynxPointParser(EulynxGenericParser):
 
         returns None
         '''
-        self.move_point_callbacks.append((function, tuple))
+        self.move_point_callbacks.append((function, params))

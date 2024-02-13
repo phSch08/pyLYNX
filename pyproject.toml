@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyLYNX"
-version = "1.4"
+version = "1.5"
 description = "A basic EULYNX implementation for Python"
 authors = ["Philipp Schmidt <philipp.schmidt@student.hpi.de>"]
 readme = "README.md"
