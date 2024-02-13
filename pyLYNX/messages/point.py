@@ -49,7 +49,7 @@ class EulynxPointParser(EulynxGenericParser):
         returns True if the message could be parsed successfully, otherwise False
         '''
         if (message[:3] == EulynxPoint.protocol_type + bytes.fromhex('0100')):
-            for func in self.indicate_signal_aspect_callbacks:
+            for func in self.move_point_callbacks:
                 sender = message[3:23].decode('iso8859-1').rstrip("_")
                 receiver = message[23:43].decode('iso8859-1').rstrip("_")
                 func[0](sender, receiver, message[43], func[1])
@@ -66,4 +66,4 @@ class EulynxPointParser(EulynxGenericParser):
 
         returns None
         '''
-        self.indicate_signal_aspect_callbacks.append((function, tuple))
+        self.move_point_callbacks.append((function, tuple))
